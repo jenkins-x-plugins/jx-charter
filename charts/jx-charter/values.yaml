@@ -32,7 +32,9 @@ resources:
 
 restartPolicy: Always
 command:
-- jx-charter-run
+- jx
+- charter
+- run
 args: []
 env: 
   GIT_AUTHOR_NAME: "jenkins-x-bot"
