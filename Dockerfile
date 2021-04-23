@@ -8,7 +8,4 @@ ARG TARGETOS
 
 LABEL maintainer="jenkins-x"
 
-# lets get the jx command to download the correct plugin version
-ENV JX_CHARTER_VERSION $VERSION
-
-RUN jx charter --help
+COPY ./build/linux/jx-charter /usr/bin/jx-charter

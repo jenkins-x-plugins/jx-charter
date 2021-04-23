@@ -32,8 +32,7 @@ resources:
 
 restartPolicy: Always
 command:
-- jx
-- charter
+- jx-charter
 - run
 args: []
 env: 
