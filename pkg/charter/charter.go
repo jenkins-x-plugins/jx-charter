@@ -26,14 +26,22 @@ func UpsertChartFromSecret(ctx context.Context, chartClient versioned.Interface,
 		return nil
 	}
 
+	name := release.Name
+	if name == "" {
+		name = r.Name
+	}
+	namespace := release.Namespace
+	if namespace == "" {
+		namespace = r.Namespace
+	}
 	ch := &v1alpha1.Chart{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: v1alpha1.APIVersion,
 			Kind:       v1alpha1.KindChart,
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:        release.Name,
-			Namespace:   release.Namespace,
+			Name:        name,
+			Namespace:   namespace,
 			Annotations: r.Annotations,
 			Labels:      r.Labels,
 		},
@@ -54,6 +62,9 @@ func UpsertChartFromSecret(ctx context.Context, chartClient versioned.Interface,
 func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alpha1.Chart) (*v1alpha1.Chart, error) {
 	ns := ch.Namespace
 	name := ch.Name
+	if name == "" {
+		log.Logger().Warnf("missing chart name")
+	}
 	chartInterface := chartClient.ChartV1alpha1().Charts(ns)
 
 	r, err := chartInterface.Get(ctx, name, metav1.GetOptions{})
@@ -64,6 +75,8 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 		}
 		return r, nil
 	}
+	r.Name = name
+	r.Namespace = ns
 	r.Spec = ch.Spec
 	if ch.Status != nil {
 		r.Status = ch.Status
