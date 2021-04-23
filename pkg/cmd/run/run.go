@@ -2,9 +2,17 @@ package run
 
 import (
 	"context"
-	"flag"
 	"fmt"
+	"net/http"
+	"os"
+	"os/signal"
+	"sync/atomic"
+	"syscall"
+	"time"
+
+	"github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/handlers"
+	"github.com/jenkins-x-plugins/jx-charter/pkg/helmdecoder"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -14,15 +22,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	coreInformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"net/http"
-	"os"
-	"os/signal"
-	"sync/atomic"
-	"syscall"
+	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -40,13 +45,15 @@ var (
 type Options struct {
 	options.BaseOptions
 
-	Port       string
-	Namespace  string
-	KubeClient kubernetes.Interface
+	Port           string
+	ResyncInterval time.Duration
+	WatchNamespace string
+	Namespace      string
+	KubeClient     kubernetes.Interface
 
 	CoreInformerFactory coreInformers.SharedInformerFactory
 	HelmInformer        cache.SharedIndexInformer
-	IsReady             *atomic.Value
+	IsReady             atomic.Value
 	Stop                chan struct{}
 }
 
@@ -65,8 +72,9 @@ func NewCmdRun() (*cobra.Command, *Options) {
 		},
 	}
 
-	cmd.Flags().StringVarP(&o.Namespace, "namespace", "n", "", "The kubernetes Namespace to watch for PipelineRun and PipelineActivity resources. Defaults to the current namespace")
-	flag.StringVar(&o.Port, "port", "8080", "port the health endpoint should listen on")
+	cmd.Flags().StringVarP(&o.WatchNamespace, "namespace", "n", "", "The kubernetes namespace to watch for helm Secrets")
+	cmd.Flags().DurationVar(&o.ResyncInterval, "resync-interval", 1*time.Minute, "resync interval between full re-list operations")
+	cmd.Flags().StringVar(&o.Port, "port", "8080", "port the health endpoint should listen on")
 
 	o.BaseOptions.AddBaseFlags(cmd)
 	return cmd, o
@@ -75,10 +83,20 @@ func NewCmdRun() (*cobra.Command, *Options) {
 // Validate verifies things are setup correctly
 func (o *Options) Validate() error {
 	var err error
+
 	o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 	if err != nil {
 		return errors.Wrapf(err, "failed to create kube client")
 	}
+
+	if o.CoreInformerFactory == nil {
+		o.CoreInformerFactory = coreInformers.NewSharedInformerFactoryWithOptions(
+			o.KubeClient,
+			o.ResyncInterval,
+			coreInformers.WithNamespace(o.WatchNamespace),
+		)
+	}
+
 	return nil
 }
 
@@ -120,7 +138,42 @@ func upsertSecret(r *v1.Secret) {
 	if r == nil {
 		return
 	}
- 	fmt.Printf("got Secret %s/%s\n", r.Namespace, r.Namespace)
+	release, err := helmdecoder.ConvertSecretToHelmRelease(r)
+	if err != nil {
+		log.Logger().Warnf("failed to decode Secret %s/%s due to %v\n", r.Namespace, r.Namespace, err.Error())
+		return
+	}
+	if release == nil {
+		return
+	}
+
+	ch := &v1alpha1.Chart{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: v1alpha1.APIVersion,
+			Kind:       v1alpha1.KindChart,
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        release.Name,
+			Namespace:   release.Namespace,
+			Annotations: r.Annotations,
+			Labels:      r.Labels,
+		},
+	}
+
+	if release.Chart != nil && release.Chart.Metadata != nil {
+		ch.Spec.Metadata = *release.Chart.Metadata
+	}
+	if release.Info != nil {
+		ch.Status = v1alpha1.ToChartStatus(release.Info)
+	}
+
+	data, err := yaml.Marshal(ch)
+	if err != nil {
+		log.Logger().Warnf("failed to marshal Release for secret %s/%s due to %v\n", r.Namespace, r.Namespace, err.Error())
+		return
+	}
+
+	fmt.Printf("\n%s\n", string(data))
 }
 
 func (o *Options) Start() {
@@ -142,7 +195,7 @@ func (o *Options) Start() {
 }
 
 func (o *Options) startHealthEndpoint() {
-	isReady := o.IsReady
+	isReady := &o.IsReady
 	r := handlers.Router(isReady)
 
 	interrupt := make(chan os.Signal, 1)
