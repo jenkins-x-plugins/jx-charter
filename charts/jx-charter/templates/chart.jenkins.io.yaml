@@ -28,7 +28,7 @@ spec:
           # See issue: https://github.com/knative/serving/issues/912
           x-kubernetes-preserve-unknown-fields: true
   names:
-    kind: Preview
+    kind: Chart
     singular: chart
     plural: charts
     shortNames:
@@ -42,7 +42,7 @@ metadata:
 spec:
   group: chart.jenkins.io
   names:
-    kind: Preview
+    kind: Chart
     singular: chart
     plural: charts
     shortNames:

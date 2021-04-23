@@ -3,6 +3,8 @@ package run
 import (
 	"context"
 	"fmt"
+	"github.com/jenkins-x-plugins/jx-charter/pkg/charter"
+	"github.com/jenkins-x-plugins/jx-charter/pkg/client/clientset/versioned"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,9 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/handlers"
-	"github.com/jenkins-x-plugins/jx-charter/pkg/helmdecoder"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/helper"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
@@ -22,12 +22,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
 	coreInformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
-	"sigs.k8s.io/yaml"
 )
 
 var (
@@ -50,6 +48,7 @@ type Options struct {
 	WatchNamespace string
 	Namespace      string
 	KubeClient     kubernetes.Interface
+	ChartClient    versioned.Interface
 
 	CoreInformerFactory coreInformers.SharedInformerFactory
 	HelmInformer        cache.SharedIndexInformer
@@ -89,6 +88,11 @@ func (o *Options) Validate() error {
 		return errors.Wrapf(err, "failed to create kube client")
 	}
 
+	o.ChartClient, err = charter.LazyCreateChartClient(o.ChartClient)
+	if err != nil {
+		return errors.Wrapf(err, "failed to create chart client")
+	}
+
 	if o.CoreInformerFactory == nil {
 		o.CoreInformerFactory = coreInformers.NewSharedInformerFactoryWithOptions(
 			o.KubeClient,
@@ -108,17 +112,37 @@ func (o *Options) Run() error {
 
 	o.HelmInformer = o.CoreInformerFactory.Core().V1().Secrets().Informer()
 
+	ctx := context.TODO()
+
 	o.HelmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			r := obj.(*v1.Secret)
-			upsertSecret(r)
-			log.Logger().Debugf("handled Add event for helm secret %s", r.Name)
+			err := charter.UpsertChartFromSecret(ctx, o.ChartClient, r)
+			if err != nil {
+				log.Logger().Warnf("failed to process Add helm secret %s: %v", r.Name, err)
+			} else {
+				log.Logger().Debugf("handled Add event for helm secret %s", r.Name)
+			}
 		},
 
 		UpdateFunc: func(old, new interface{}) {
 			r := new.(*v1.Secret)
-			upsertSecret(r)
-			log.Logger().Debugf("handled Update event for deployment %s", r.Name)
+			err := charter.UpsertChartFromSecret(ctx, o.ChartClient, r)
+			if err != nil {
+				log.Logger().Warnf("failed to process Update helm secret %s: %v", r.Name, err)
+			} else {
+				log.Logger().Debugf("handled Update event for helm secret %s", r.Name)
+			}
+		},
+
+		DeleteFunc: func(obj interface{}) {
+			r := obj.(*v1.Secret)
+			err := charter.DeleteChartFromSecret(ctx, o.ChartClient, r)
+			if err != nil {
+				log.Logger().Warnf("failed to process Delete helm secret %s: %v", r.Name, err)
+			} else {
+				log.Logger().Debugf("handled Delete event for helm secret %s", r.Name)
+			}
 		},
 	})
 
@@ -132,48 +156,6 @@ func (o *Options) Run() error {
 	// health endpoint is used by kubernetes and changes to ready once informer caches are syncd
 	o.startHealthEndpoint()
 	return nil
-}
-
-func upsertSecret(r *v1.Secret) {
-	if r == nil {
-		return
-	}
-	release, err := helmdecoder.ConvertSecretToHelmRelease(r)
-	if err != nil {
-		log.Logger().Warnf("failed to decode Secret %s/%s due to %v\n", r.Namespace, r.Namespace, err.Error())
-		return
-	}
-	if release == nil {
-		return
-	}
-
-	ch := &v1alpha1.Chart{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: v1alpha1.APIVersion,
-			Kind:       v1alpha1.KindChart,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:        release.Name,
-			Namespace:   release.Namespace,
-			Annotations: r.Annotations,
-			Labels:      r.Labels,
-		},
-	}
-
-	if release.Chart != nil && release.Chart.Metadata != nil {
-		ch.Spec.Metadata = *release.Chart.Metadata
-	}
-	if release.Info != nil {
-		ch.Status = v1alpha1.ToChartStatus(release.Info)
-	}
-
-	data, err := yaml.Marshal(ch)
-	if err != nil {
-		log.Logger().Warnf("failed to marshal Release for secret %s/%s due to %v\n", r.Namespace, r.Namespace, err.Error())
-		return
-	}
-
-	fmt.Printf("\n%s\n", string(data))
 }
 
 func (o *Options) Start() {
