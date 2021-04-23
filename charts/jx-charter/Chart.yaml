@@ -3,6 +3,5 @@ description: |
   This chart installs the jx-charter CRD and the optional controller
 icon: https://raw.githubusercontent.com/jenkins-x/jenkins-x-website/master/images/logo/jenkinsx-icon-color.svg
 name: jx-charter
-version: 0.1.0-SNAPSHOT
+version: 0.0.8
 home: https://github.com/jenkins-x-plugins/jx-charter
-
