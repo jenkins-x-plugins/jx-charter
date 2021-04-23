@@ -13,7 +13,7 @@ import (
 func Main() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   rootcmd.TopLevelCommand,
-		Short: "Charter commands",
+		Short: "commands for generating Helm Chart CRDs for better reporting and insight",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
 			if err != nil {
