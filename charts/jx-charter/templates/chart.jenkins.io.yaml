@@ -10,15 +10,15 @@ spec:
       served: true
       storage: true
       additionalPrinterColumns:
-      - name: Chart
-        type: string
-        jsonPath: ".spec.name"
       - name: Updated
         type: string
         jsonPath: ".status.lastDeployed"
       - name: Status
         type: string
         jsonPath: ".status.status"
+      - name: Chart
+        type: string
+        jsonPath: ".spec.name"
       - name: Version
         type: string
         jsonPath: ".spec.version"
@@ -76,15 +76,15 @@ spec:
       served: true
       storage: true
       additionalPrinterColumns:
-      - name: Chart
-        type: string
-        JSONPath: ".spec.name"
       - name: Updated
         type: string
         JSONPath: ".status.lastDeployed"
       - name: Status
         type: string
         JSONPath: ".status.status"
+      - name: Chart
+        type: string
+        JSONPath: ".spec.name"
       - name: Version
         type: string
         JSONPath: ".spec.version"
