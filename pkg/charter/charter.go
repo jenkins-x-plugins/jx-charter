@@ -76,6 +76,7 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 		if err != nil {
 			return r, errors.Wrapf(err, "failed to create Chart resource %s/%s", ns, name)
 		}
+		log.Logger().Infof("created Chart %s/%s", ns, name)
 		return r, nil
 	}
 	r.Name = name
@@ -88,6 +89,7 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	if err != nil {
 		return r, errors.Wrapf(err, "failed to update Chart resource %s/%s", ns, name)
 	}
+	log.Logger().Infof("updated Chart %s/%s", ns, name)
 	return r, nil
 }
 
