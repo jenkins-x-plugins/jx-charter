@@ -68,7 +68,10 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	chartInterface := chartClient.ChartV1alpha1().Charts(ns)
 
 	r, err := chartInterface.Get(ctx, name, metav1.GetOptions{})
-	if err != nil && apierrors.IsNotFound(err) {
+	if err != nil {
+		if !apierrors.IsNotFound(err) {
+			return r, errors.Wrapf(err, "failed to get Chart resource %s/%s", ns, name)
+		}
 		r, err = chartInterface.Create(ctx, ch, metav1.CreateOptions{})
 		if err != nil {
 			return r, errors.Wrapf(err, "failed to create Chart resource %s/%s", ns, name)

@@ -52,7 +52,7 @@ clusterrole:
     - list
     - watch
   - apiGroups:
-    - chart.jenkins.io.dev
+    - chart.jenkins.io
     resources:
     - charts
     verbs:
@@ -60,4 +60,5 @@ clusterrole:
     - list
     - watch
     - create
+    - patch
     - update
