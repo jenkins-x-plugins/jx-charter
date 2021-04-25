@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/jenkins-x-plugins/jx-charter/pkg/cmd/run"
+	"github.com/jenkins-x-plugins/jx-charter/pkg/cmd/update"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/cmd/version"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/rootcmd"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras"
@@ -22,6 +23,7 @@ func Main() *cobra.Command {
 		},
 	}
 	cmd.AddCommand(cobras.SplitCommand(run.NewCmdRun()))
+	cmd.AddCommand(cobras.SplitCommand(update.NewCmdUpdate()))
 	cmd.AddCommand(cobras.SplitCommand(version.NewCmdVersion()))
 	return cmd
 }

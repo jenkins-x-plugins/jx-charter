@@ -3,14 +3,15 @@ package run
 import (
 	"context"
 	"fmt"
-	"github.com/jenkins-x-plugins/jx-charter/pkg/charter"
-	"github.com/jenkins-x-plugins/jx-charter/pkg/client/clientset/versioned"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync/atomic"
 	"syscall"
 	"time"
+
+	"github.com/jenkins-x-plugins/jx-charter/pkg/charter"
+	"github.com/jenkins-x-plugins/jx-charter/pkg/client/clientset/versioned"
 
 	"github.com/jenkins-x-plugins/jx-charter/pkg/handlers"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/rootcmd"
