@@ -51,7 +51,7 @@ func (f *genericInformer) Lister() cache.GenericLister {
 // TODO extend this to unknown resources with a client pool
 func (f *sharedInformerFactory) ForResource(resource schema.GroupVersionResource) (GenericInformer, error) {
 	switch resource {
-	// Group=chart.jenkins.io, Version=v1alpha1
+	// Group=chart.jenkins-x.io, Version=v1alpha1
 	case v1alpha1.SchemeGroupVersion.WithResource("charts"):
 		return &genericInformer{resource: resource.GroupResource(), informer: f.Chart().V1alpha1().Charts().Informer()}, nil
 

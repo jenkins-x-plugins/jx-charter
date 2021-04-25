@@ -28,7 +28,7 @@ type ChartV1alpha1Interface interface {
 	ChartsGetter
 }
 
-// ChartV1alpha1Client is used to interact with features provided by the chart.jenkins.io group.
+// ChartV1alpha1Client is used to interact with features provided by the chart.jenkins-x.io group.
 type ChartV1alpha1Client struct {
 	restClient rest.Interface
 }

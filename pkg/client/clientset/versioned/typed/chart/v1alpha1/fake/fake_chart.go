@@ -35,9 +35,9 @@ type FakeCharts struct {
 	ns   string
 }
 
-var chartsResource = schema.GroupVersionResource{Group: "chart.jenkins.io", Version: "v1alpha1", Resource: "charts"}
+var chartsResource = schema.GroupVersionResource{Group: "chart.jenkins-x.io", Version: "v1alpha1", Resource: "charts"}
 
-var chartsKind = schema.GroupVersionKind{Group: "chart.jenkins.io", Version: "v1alpha1", Kind: "Chart"}
+var chartsKind = schema.GroupVersionKind{Group: "chart.jenkins-x.io", Version: "v1alpha1", Kind: "Chart"}
 
 // Get takes name of the chart, and returns the corresponding chart object, and an error if there is any.
 func (c *FakeCharts) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Chart, err error) {
