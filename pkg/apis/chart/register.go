@@ -9,4 +9,7 @@ const (
 
 	// GroupAndVersion is the Chart API Group and version
 	GroupAndVersion = GroupName + "/" + Version
+
+	// Package is the Go package in which the apis live
+	Package = "github.com/jenkins-x-plugins/jx-charter/pkg/apis"
 )

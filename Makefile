@@ -186,7 +186,8 @@ crd-manifests: $(CONTROLLER_GEN)
 	$(CONTROLLER_GEN) crd:maxDescLen=0 paths="./pkg/apis/preview/v1alpha1/..." output:crd:artifacts:config=crds
 
 .PHONY: docs
-docs: cli-docs crds-docs
+docs: cli-docs generate-refdocs
+#docs: cli-docs crds-docs
 
 DOCS_GEN := bin/gen-docs
 $(DOCS_GEN):
@@ -197,7 +198,7 @@ $(DOCS_GEN):
 .PHONY: crds-docs
 crds-docs: $(DOCS_GEN)
 	rm -rf ./docs/crds
-	$(DOCS_GEN) --input=./pkg/apis/preview/v1alpha1/... --root=Preview --output=./docs/crds
+	$(DOCS_GEN) --input=./pkg/apis/chart/v1alpha1/... --root=Chart --output=./docs/crds
 
 bin/docs:
 	go build $(LDFLAGS) -v -o bin/docs cmd/docs/*.go
@@ -213,6 +214,11 @@ cli-docs: bin/docs ## update docs
 .PHONY: code-generate
 code-generate:
 	./hack/generate.sh
+
+.PHONY: gen-schema
+gen-schema:
+	mkdir -p schema
+	go run cmd/schemagen/main.go
 
 include Makefile.codegen
 
