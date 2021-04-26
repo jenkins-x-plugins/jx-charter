@@ -37,6 +37,11 @@ type ChartList struct {
 // ChartSpec contains the chart metadata
 type ChartSpec struct {
 	chart.Metadata
+
+	// RepositoryName the chart repository name used in the fully qualified chart name
+	RepositoryName string `json:"repositoryName,omitempty"`
+	// RepositoryURL the chart repository URL
+	RepositoryURL string `json:"repositoryUrl,omitempty"`
 }
 
 // ChartStatus contains the chart status information
