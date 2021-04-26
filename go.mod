@@ -6,7 +6,8 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
-	github.com/jenkins-x/jx-helpers/v3 v3.0.105
+	github.com/jenkins-x/jx-api/v4 v4.0.29
+	github.com/jenkins-x/jx-helpers/v3 v3.0.106
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
 	github.com/onsi/ginkgo v1.14.1 // indirect
