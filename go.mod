@@ -4,12 +4,14 @@ require (
 	github.com/cpuguy83/go-md2man v1.0.10
 	github.com/fatih/color v1.10.0 // indirect
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32 // indirect
+	github.com/googleapis/gnostic v0.5.5 // indirect
 	github.com/gorilla/mux v1.7.4
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/jenkins-x/jx-api/v4 v4.0.29
 	github.com/jenkins-x/jx-helpers/v3 v3.0.106
 	github.com/jenkins-x/jx-kube-client/v3 v3.0.2
 	github.com/jenkins-x/jx-logging/v3 v3.0.3
+	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/onsi/ginkgo v1.14.1 // indirect
 	github.com/onsi/gomega v1.10.2 // indirect
 	github.com/pkg/errors v0.9.1
