@@ -8,6 +8,7 @@ import (
 	"github.com/jenkins-x-plugins/jx-charter/pkg/helmdecoder"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
 	"github.com/pkg/errors"
+	rspb "helm.sh/helm/v3/pkg/release"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -46,6 +47,13 @@ func UpsertChartFromSecret(ctx context.Context, chartClient versioned.Interface,
 			Annotations: r.Annotations,
 			Labels:      r.Labels,
 		},
+	}
+	// lets ignore superceded secrets
+	if release.Info != nil {
+		if release.Info.Status != rspb.StatusDeployed {
+			log.Logger().Infof("ignoring update to helm secret %s/%s as it is not deployed but has status: %s", r.Namespace, r.Name, string(release.Info.Status))
+			return nil
+		}
 	}
 
 	if release.Chart != nil && release.Chart.Metadata != nil {
