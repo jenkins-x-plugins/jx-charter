@@ -91,7 +91,9 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	r.Name = name
 	r.Namespace = ns
 
-	if reflect.DeepEqual(r.Spec, ch.Spec) && reflect.DeepEqual(r.Status, ch.Status) {
+	status1 := toCompareStatus(r.Status)
+	status2 := toCompareStatus(ch.Status)
+	if reflect.DeepEqual(r.Spec, ch.Spec) && reflect.DeepEqual(status1, status2) {
 		log.Logger().Debugf("ignoring update to helm secret %s/%s as it has not changed", r.Namespace, r.Name)
 		return r, nil
 	}
@@ -106,6 +108,16 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	}
 	log.Logger().Infof("updated Chart %s/%s", ns, name)
 	return r, nil
+}
+
+func toCompareStatus(status *v1alpha1.ChartStatus) v1alpha1.ChartStatus {
+	answer := v1alpha1.ChartStatus{}
+	if status != nil {
+		answer = *status
+	}
+	answer.FirstDeployed = metav1.Time{}
+	answer.LastDeployed = metav1.Time{}
+	return answer
 }
 
 // DeleteChartFromSecret deletes the Chart CRD from the given Secret if its a helm secret
