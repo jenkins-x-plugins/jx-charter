@@ -22,10 +22,18 @@ func healthz(w http.ResponseWriter, _ *http.Request) {
 // readyz is a readiness probe.
 func readyz(isReady *atomic.Value) http.HandlerFunc {
 	return func(w http.ResponseWriter, _ *http.Request) {
-		if isReady == nil || !isReady.Load().(bool) {
-			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-			return
+		if isReady != nil {
+			v := isReady.Load()
+			if v != nil {
+				f := v.(bool)
+				if f {
+					w.WriteHeader(http.StatusOK)
+					return
+				}
+			}
+
 		}
-		w.WriteHeader(http.StatusOK)
+		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+		return
 	}
 }
