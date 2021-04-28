@@ -12,3 +12,35 @@
 
 See the [jx-charter command reference](https://github.com/jenkins-x-plugins/jx-charter/blob/master/docs/cmd/jx-charter.md)
 
+
+## Installation
+
+To install the chart use the following:
+
+
+- Add jx3 helm charts repo
+
+```bash
+helm repo add jx3 https://storage.googleapis.com/jenkinsxio/charts
+
+helm repo update
+```
+
+- Install (or upgrade)
+
+```bash
+# This will install or upgrade the jx-charter chart in the current namespace (with a jx-charter release name)
+
+helm upgrade --install jx-charter jx3/jx-charter
+```
+
+## Uninstalling
+
+To uninstall the chart, simply delete the release.
+
+```bash
+# This will uninstall jx-charter in the current namespace (assuming a jx-charter release name)
+
+# Helm v3
+helm uninstall jx-charter
+```
