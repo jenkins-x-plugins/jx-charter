@@ -2,7 +2,6 @@ package charter
 
 import (
 	"context"
-
 	"github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/client/clientset/versioned"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/helmdecoder"
@@ -12,6 +11,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"reflect"
 )
 
 // UpsertChartFromSecret upserts the Chart CRD from the given Secret if its a helm secret
@@ -51,7 +51,7 @@ func UpsertChartFromSecret(ctx context.Context, chartClient versioned.Interface,
 	// lets ignore superceded secrets
 	if release.Info != nil {
 		if release.Info.Status != rspb.StatusDeployed {
-			log.Logger().Infof("ignoring update to helm secret %s/%s as it is not deployed but has status: %s", r.Namespace, r.Name, string(release.Info.Status))
+			log.Logger().Debugf("ignoring update to helm secret %s/%s as it is not deployed but has status: %s", r.Namespace, r.Name, string(release.Info.Status))
 			return nil
 		}
 	}
@@ -90,6 +90,12 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	}
 	r.Name = name
 	r.Namespace = ns
+
+	if reflect.DeepEqual(r.Spec, ch.Spec) && reflect.DeepEqual(r.Status, ch.Status) {
+		log.Logger().Debugf("ignoring update to helm secret %s/%s as it has not changed", r.Namespace, r.Name)
+		return r, nil
+	}
+
 	r.Spec = ch.Spec
 	if ch.Status != nil {
 		r.Status = ch.Status
