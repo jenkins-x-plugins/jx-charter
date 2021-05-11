@@ -1,64 +1,53 @@
 image:
   # image.parentRepository -- Docker registry to pull images from
   parentRepository: gcr.io/jenkinsxio
-
   repository: gcr.io/jenkinsxio/jx-charter
-
   # image.tag -- Docker images tag
-  tag: 0.0.167
-
+  tag: 0.0.24
   # image.pullPolicy -- Image pull policy
   pullPolicy: IfNotPresent
-
 serviceaccount:
   customName: jx-charter
-
 internalPort: 8080
-
 probe:
   readypath: "/readyz"
   livepath: "/healthz"
-
 resources:
   # resources.limits -- Resource limits applied to the controller pods
   limits:
     cpu: 100m
     memory: 512Mi
-
   # resources.requests -- Resource requests applied to the controller pods
   requests:
     cpu: 80m
     memory: 128Mi
-
 restartPolicy: Always
 command:
-- jx-charter
+  - jx-charter
 args:
-- run
-
+  - run
 env:
   GIT_AUTHOR_NAME: "jenkins-x-bot"
   GIT_AUTHOR_EMAIL: "jenkins-x@googlegroups.com"
-
 clusterrole:
   enabled: true
   rules:
-  - apiGroups:
-    - ""
-    resources:
-    - secrets
-    verbs:
-    - get
-    - list
-    - watch
-  - apiGroups:
-    - chart.jenkins-x.io
-    resources:
-    - charts
-    verbs:
-    - get
-    - list
-    - watch
-    - create
-    - patch
-    - update
+    - apiGroups:
+        - ""
+      resources:
+        - secrets
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
+        - chart.jenkins-x.io
+      resources:
+        - charts
+      verbs:
+        - get
+        - list
+        - watch
+        - create
+        - patch
+        - update
