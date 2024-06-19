@@ -11,7 +11,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/cobras/templates"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -66,12 +66,12 @@ func (o *Options) Validate() error {
 
 	o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create kube client")
+		return fmt.Errorf("failed to create kube client: %w", err)
 	}
 
 	o.ChartClient, err = charter.LazyCreateChartClient(o.ChartClient)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create chart client")
+		return fmt.Errorf("failed to create chart client: %w", err)
 	}
 
 	return nil
@@ -80,7 +80,7 @@ func (o *Options) Validate() error {
 func (o *Options) Run() error {
 	err := o.Validate()
 	if err != nil {
-		return errors.Wrapf(err, "failed to validate options")
+		return fmt.Errorf("failed to validate options: %w", err)
 	}
 
 	ctx := context.TODO()
@@ -91,7 +91,7 @@ func (o *Options) Run() error {
 		if apierrors.IsNotFound(err) {
 			return nil
 		}
-		return errors.Wrapf(err, "could not list Secrets in namespace %s", o.WatchNamespace)
+		return fmt.Errorf("could not list Secrets in namespace %s: %w", o.WatchNamespace, err)
 	}
 	if list == nil {
 		return nil
@@ -101,7 +101,7 @@ func (o *Options) Run() error {
 		r := &list.Items[i]
 		err := charter.UpsertChartFromSecret(ctx, o.ChartClient, r)
 		if err != nil {
-			return errors.Wrapf(err, "failed to process secret %s", r.Name)
+			return fmt.Errorf("failed to process secret %s: %w", r.Name, err)
 		}
 	}
 	return nil

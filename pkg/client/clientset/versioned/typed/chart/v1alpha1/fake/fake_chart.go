@@ -23,7 +23,6 @@ import (
 	v1alpha1 "github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	labels "k8s.io/apimachinery/pkg/labels"
-	schema "k8s.io/apimachinery/pkg/runtime/schema"
 	types "k8s.io/apimachinery/pkg/types"
 	watch "k8s.io/apimachinery/pkg/watch"
 	testing "k8s.io/client-go/testing"
@@ -35,9 +34,9 @@ type FakeCharts struct {
 	ns   string
 }
 
-var chartsResource = schema.GroupVersionResource{Group: "chart.jenkins-x.io", Version: "v1alpha1", Resource: "charts"}
+var chartsResource = v1alpha1.SchemeGroupVersion.WithResource("charts")
 
-var chartsKind = schema.GroupVersionKind{Group: "chart.jenkins-x.io", Version: "v1alpha1", Kind: "Chart"}
+var chartsKind = v1alpha1.SchemeGroupVersion.WithKind("Chart")
 
 // Get takes name of the chart, and returns the corresponding chart object, and an error if there is any.
 func (c *FakeCharts) Get(ctx context.Context, name string, options v1.GetOptions) (result *v1alpha1.Chart, err error) {
@@ -116,7 +115,7 @@ func (c *FakeCharts) UpdateStatus(ctx context.Context, chart *v1alpha1.Chart, op
 // Delete takes name of the chart and deletes it. Returns an error if one occurs.
 func (c *FakeCharts) Delete(ctx context.Context, name string, opts v1.DeleteOptions) error {
 	_, err := c.Fake.
-		Invokes(testing.NewDeleteAction(chartsResource, c.ns, name), &v1alpha1.Chart{})
+		Invokes(testing.NewDeleteActionWithOptions(chartsResource, c.ns, name, opts), &v1alpha1.Chart{})
 
 	return err
 }

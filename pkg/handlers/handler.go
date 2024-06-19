@@ -34,6 +34,5 @@ func readyz(isReady *atomic.Value) http.HandlerFunc {
 
 		}
 		http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
-		return
 	}
 }

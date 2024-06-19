@@ -13,7 +13,7 @@ ORG := jenkins-x-plugins
 ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
-GO_VERSION := 1.13
+GO_VERSION := 1.22
 GO_DEPENDENCIES := $(call rwildcard,pkg/,*.go) $(call rwildcard,cmd/,*.go)
 
 GOPRIVATE := github.com/jenkins-x/jx-apps,github.com/jenkins-x/jx-helpers
