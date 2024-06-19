@@ -20,7 +20,7 @@ import (
 	"github.com/jenkins-x/jx-helpers/v3/pkg/kube"
 	"github.com/jenkins-x/jx-helpers/v3/pkg/options"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
-	"github.com/pkg/errors"
+
 	"github.com/spf13/cobra"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/runtime"
@@ -86,12 +86,12 @@ func (o *Options) Validate() error {
 
 	o.KubeClient, o.Namespace, err = kube.LazyCreateKubeClientAndNamespace(o.KubeClient, o.Namespace)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create kube client")
+		return fmt.Errorf("failed to create kube client: %w", err)
 	}
 
 	o.ChartClient, err = charter.LazyCreateChartClient(o.ChartClient)
 	if err != nil {
-		return errors.Wrapf(err, "failed to create chart client")
+		return fmt.Errorf("failed to create chart client: %w", err)
 	}
 
 	if o.CoreInformerFactory == nil {
@@ -108,14 +108,14 @@ func (o *Options) Validate() error {
 func (o *Options) Run() error {
 	err := o.Validate()
 	if err != nil {
-		return errors.Wrapf(err, "failed to validate options")
+		return fmt.Errorf("failed to validate options: %w", err)
 	}
 
 	o.HelmInformer = o.CoreInformerFactory.Core().V1().Secrets().Informer()
 
 	ctx := context.TODO()
 
-	o.HelmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+	_, err = o.HelmInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			r := obj.(*v1.Secret)
 			err := charter.UpsertChartFromSecret(ctx, o.ChartClient, r)
@@ -146,6 +146,9 @@ func (o *Options) Run() error {
 			}
 		},
 	})
+	if err != nil {
+		return fmt.Errorf("failed to register event handle: %w", err)
+	}
 
 	log.Logger().Info("starting charter controller")
 

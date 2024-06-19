@@ -1,37 +1,43 @@
 #!/usr/bin/env bash
 
-# Copyright 2019 The Tekton Authors
+# Copyright 2017 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 set -o errexit
 set -o nounset
 set -o pipefail
 
-# Conveniently set GOPATH if unset
-if [[ -z "${GOPATH:-}" ]]; then
-  export GOPATH="$(go env GOPATH)"
-  if [[ -z "${GOPATH}" ]]; then
-    echo "WARNING: GOPATH not set and go binary unable to provide it"
-  fi
+SCRIPT_ROOT=$(dirname ${BASH_SOURCE})/..
+CODEGEN_VERSION=$(grep 'k8s.io/code-generator' go.sum | awk '{print $2}' | sed 's/\/go.mod//g' | tail -1)
+CODEGEN_PKG=$(echo `go env GOPATH`"/pkg/mod/k8s.io/code-generator@${CODEGEN_VERSION}")
+
+if [[ ! -d ${CODEGEN_PKG} ]]; then
+  echo "${CODEGEN_PKG} is missing. Running 'go mod download'."
+  go mod download
 fi
 
-GENERATOR_VERSION=v0.19.2
-(
-  # To support running this script from anywhere, we have to first cd into this directory
-  # so we can install the tools.
-  cd "$(dirname "${0}")"
-  go get k8s.io/code-generator/cmd/{defaulter-gen,client-gen,lister-gen,informer-gen,deepcopy-gen}@$GENERATOR_VERSION
-)
+source "${CODEGEN_PKG}/kube_codegen.sh"
 
-SCRIPT_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
-rm -rf "${SCRIPT_ROOT}"/pkg/client
-# generate the code with:
-# --output-base    because this script should also be able to run inside the vendor dir of
-#                  k8s.io/kubernetes. The output-base is needed for the generators to output into the vendor dir
-#                  instead of the $GOPATH directly. For normal projects this can be dropped.
-bash hack/generate-groups.sh all \
-  github.com/jenkins-x-plugins/jx-charter/pkg/client github.com/jenkins-x-plugins/jx-charter/pkg/apis \
-  chart:v1alpha1 \
-  --output-base "$(dirname "${BASH_SOURCE[0]}")/../../../.." \
-  --go-header-file "${SCRIPT_ROOT}"/hack/custom-boilerplate.go.txt
+THIS_PKG="github.com/jenkins-x-plugins/jx-charter"
 
+kube::codegen::gen_helpers \
+    --boilerplate "${SCRIPT_ROOT}/hack/custom-boilerplate.go.txt" \
+    "${SCRIPT_ROOT}/pkg/apis"
 
+kube::codegen::gen_client \
+    --with-watch \
+    --output-dir "${SCRIPT_ROOT}/pkg/client" \
+    --output-pkg "${THIS_PKG}/pkg/client" \
+    --boilerplate "${SCRIPT_ROOT}/hack/custom-boilerplate.go.txt" \
+    "${SCRIPT_ROOT}/pkg/apis"

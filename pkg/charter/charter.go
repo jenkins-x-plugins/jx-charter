@@ -2,16 +2,19 @@ package charter
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/jenkins-x-plugins/jx-charter/pkg/apis/chart/v1alpha1"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/client/clientset/versioned"
 	"github.com/jenkins-x-plugins/jx-charter/pkg/helmdecoder"
 	"github.com/jenkins-x/jx-logging/v3/pkg/log"
-	"github.com/pkg/errors"
+
+	"reflect"
+
 	rspb "helm.sh/helm/v3/pkg/release"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"reflect"
 )
 
 // UpsertChartFromSecret upserts the Chart CRD from the given Secret if its a helm secret
@@ -79,11 +82,11 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	r, err := chartInterface.Get(ctx, name, metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
-			return r, errors.Wrapf(err, "failed to get Chart resource %s/%s", ns, name)
+			return r, fmt.Errorf("failed to get Chart resource %s/%s: %w", ns, name, err)
 		}
 		r, err = chartInterface.Create(ctx, ch, metav1.CreateOptions{})
 		if err != nil {
-			return r, errors.Wrapf(err, "failed to create Chart resource %s/%s", ns, name)
+			return r, fmt.Errorf("failed to create Chart resource %s/%s: %w", ns, name, err)
 		}
 		log.Logger().Infof("created Chart %s/%s", ns, name)
 		return r, nil
@@ -104,7 +107,7 @@ func UpsertChart(ctx context.Context, chartClient versioned.Interface, ch *v1alp
 	}
 	r, err = chartInterface.Update(ctx, r, metav1.UpdateOptions{})
 	if err != nil {
-		return r, errors.Wrapf(err, "failed to update Chart resource %s/%s", ns, name)
+		return r, fmt.Errorf("failed to update Chart resource %s/%s: %w", ns, name, err)
 	}
 	log.Logger().Infof("updated Chart %s/%s", ns, name)
 	return r, nil
@@ -142,7 +145,7 @@ func DeleteChartFromSecret(ctx context.Context, chartClient versioned.Interface,
 		err = nil
 	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to delete Chart %s/%s", ns, name)
+		return fmt.Errorf("failed to delete Chart %s/%s: %w", ns, name, err)
 	}
 	return nil
 }
