@@ -13,7 +13,9 @@ import (
 // Main creates the new command
 func Main() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   rootcmd.TopLevelCommand,
+		Annotations: map[string]string{
+			cobra.CommandDisplayNameAnnotation: rootcmd.TopLevelCommand,
+		},
 		Short: "commands for generating Helm Chart CRDs for better reporting and insight",
 		Run: func(cmd *cobra.Command, args []string) {
 			err := cmd.Help()
