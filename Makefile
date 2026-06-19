@@ -13,7 +13,7 @@ ORG := jenkins-x-plugins
 ORG_REPO := $(ORG)/$(NAME)
 RELEASE_ORG_REPO := $(ORG_REPO)
 ROOT_PACKAGE := github.com/$(ORG_REPO)
-GO_VERSION := 1.22
+GO_VERSION := 1.26.3
 GO_DEPENDENCIES := $(call rwildcard,pkg/,*.go) $(call rwildcard,cmd/,*.go)
 
 GOPRIVATE := github.com/jenkins-x/jx-apps,github.com/jenkins-x/jx-helpers
@@ -193,7 +193,7 @@ DOCS_GEN := bin/gen-docs
 $(DOCS_GEN):
 	$(GO) build -o bin/gen-docs ./hack/struct-docs.go
 
-	pushd /tmp; $(GO) get -u sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.0; popd
+	pushd /tmp; $(GO) get -u sigs.k8s.io/controller-tools/cmd/controller-gen@v4.15.0; popd
 
 .PHONY: crds-docs
 crds-docs: $(DOCS_GEN)
