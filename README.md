@@ -10,11 +10,11 @@
 
 To be able to `helm list` in any namespace you need access to the secrets in whatever namespaces you are looking. The `Chart` CRD allows developers and microservices to query the installed charts without requiring read access to secrets.
 
-Also if you are using [Jenkins X](https://jenkins-x.io/) then helm releases are not created since it uses [helm template and checks all resources into git for better versioning](https://jenkins-x.io/v3/develop/faq/general/#why-does-jenkins-x-use-helmfile-template) - so installing the `jx-charter` chart will create the `Chart` CRD and then Jenkins X will create a `Chart` CRD for each chart
+Also if you are using [JayeX](https://jayex.io/) then helm releases are not created since it uses [helm template and checks all resources into git for better versioning](https://jayex.io/v3/develop/faq/general/#why-does-jenkins-x-use-helmfile-template) - so installing the `jx-charter` chart will create the `Chart` CRD and then JayeX will create a `Chart` CRD for each chart
 
 ## Using the Chart CRD
 
-Whether you use `helm install` or use [Jenkins X](https://jenkins-x.io/) (which uses `helm template`) you can list all of the charts in a namespace via...
+Whether you use `helm install` or use [JayeX](https://jayex.io/) (which uses `helm template`) you can list all of the charts in a namespace via...
 
 ```bash 
 kubectl get chart
