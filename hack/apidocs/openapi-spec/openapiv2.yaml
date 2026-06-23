@@ -677,7 +677,7 @@ definitions:
         type: string
     type: object
   com.github.jenkins-x.jx-api.pkg.apis.jenkins_io.v1.Extension:
-    description: Extension represents an extension available to this Jenkins X install
+    description: Extension represents an extension available to this JayeX install
     properties:
       apiVersion:
         description: 'APIVersion defines the versioned schema of this representation
@@ -1534,7 +1534,7 @@ definitions:
     - depth
     type: object
   com.github.jenkins-x.jx-api.pkg.apis.jenkins_io.v1.Plugin:
-    description: Plugin represents a binary plugin installed into this Jenkins X team
+    description: Plugin represents a binary plugin installed into this JayeX team
     properties:
       apiVersion:
         description: 'APIVersion defines the versioned schema of this representation
@@ -5996,7 +5996,7 @@ definitions:
     format: int-or-string
     type: string
 info:
-  title: Jenkins X
+  title: JayeX
   version: "1.0"
 paths: {}
 swagger: "2.0"
